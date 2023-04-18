@@ -1,0 +1,1 @@
+-record(exchange_rate, {id, ccy, base_ccy, buy, sale}).

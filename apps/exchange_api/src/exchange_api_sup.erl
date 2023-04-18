@@ -8,13 +8,12 @@
 -behaviour(supervisor).
 
 -export([start_link/0]).
-
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+  supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 %% sup_flags() = #{strategy => strategy(),         % optional
 %%                 intensity => non_neg_integer(), % optional
@@ -26,10 +25,12 @@ start_link() ->
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
 init([]) ->
-    SupFlags = #{strategy => one_for_all,
-                 intensity => 0,
-                 period => 1},
-    ChildSpecs = [],
-    {ok, {SupFlags, ChildSpecs}}.
+  SupFlags =
+    #{strategy => one_for_one,
+      intensity => 5,
+      period => 60},
+  ChildSpecs =
+    [#{id => exchange_rates_store, start => {exchange_rates_store, start_link, []}}],
+  {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

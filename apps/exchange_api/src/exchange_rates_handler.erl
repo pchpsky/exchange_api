@@ -1,9 +1,9 @@
 -module(exchange_rates_handler).
 
--include_lib("xmerl/include/xmerl.hrl").
-
 -export([init/2, allowed_methods/2, content_types_provided/2]).
 -export([to_xml/2]).
+
+-include("include/exchange_rates.hrl").
 
 init(Req, Opts) ->
   {cowboy_rest, Req, Opts}.
@@ -15,15 +15,18 @@ content_types_provided(Req, State) ->
   {[{{<<"application">>, <<"xml">>, []}, to_xml}], Req, State}.
 
 to_xml(Req, State) ->
-  Data =
-    [{exchangerates,
-      [{row,
-        [{exchangerate,
-          [{ccy, "USD"}, {base_ccy, "UAH"}, {buy, "27.60000"}, {sale, "28.02000"}],
-          []}]},
-      {row,
-       [{exchangerate,
-         [{ccy, "EUR"}, {base_ccy, "UAH"}, {buy, "32.40000"}, {sale, "33.01000"}],
-         []}]}]}],
-  Doc = xmerl:export_simple(Data, xmerl_xml),
+  Rates = exchange_rates_store:get_rates(),
+  Rows = lists:map(fun make_rate_row/1, Rates),
+  Doc = xmerl:export_simple([{exchangerates, Rows}], xmerl_xml),
   {Doc, Req, State}.
+
+make_rate_row(Rate) ->
+  #exchange_rate{ccy = Ccy,
+                 base_ccy = BaseCcy,
+                 buy = Buy,
+                 sale = Sale} =
+    Rate,
+  {row,
+   [{exchangerate,
+     [{ccy, Ccy}, {base_ccy, BaseCcy}, {buy, Buy}, {sale, Sale}],
+     []}]}.

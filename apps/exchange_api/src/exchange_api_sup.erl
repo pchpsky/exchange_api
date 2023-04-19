@@ -29,8 +29,8 @@ init([]) ->
     #{strategy => one_for_one,
       intensity => 5,
       period => 60},
-  ChildSpecs =
-    [#{id => exchange_rates_store, start => {exchange_rates_store, start_link, []}}],
-  {ok, {SupFlags, ChildSpecs}}.
+  ExchangeRatesStore =
+    #{id => exchange_rates_store, start => {exchange_rates_store, start_link, []}},
+  {ok, {SupFlags, [ExchangeRatesStore]}}.
 
 %% internal functions

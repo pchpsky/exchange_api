@@ -15,10 +15,18 @@ content_types_provided(Req, State) ->
   {[{{<<"application">>, <<"xml">>, []}, to_xml}], Req, State}.
 
 to_xml(Req, State) ->
-  Rates = exchange_rates_store:get_rates(),
-  Rows = lists:map(fun make_rate_row/1, Rates),
-  Doc = xmerl:export_simple([{exchangerates, Rows}], xmerl_xml),
-  {Doc, Req, State}.
+  case exchange_rates_store:get_rates() of
+    {ok, Rates} ->
+      Rows = lists:map(fun make_rate_row/1, Rates),
+      Resp = make_xml([{exchangerates, Rows}]),
+      {Resp, Req, State};
+    {error, _} ->
+      Resp = make_xml([{error, [{message, "Internal server error"}], []}]),
+      {stop, cowboy_req:reply(500, #{}, Resp, Req), State}
+  end.
+
+make_xml(Content) ->
+  xmerl:export_simple(Content, xmerl_xml).
 
 make_rate_row(Rate) ->
   #exchange_rate{ccy = Ccy,

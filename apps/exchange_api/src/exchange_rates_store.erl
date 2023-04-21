@@ -42,7 +42,9 @@ handle_call(get_rates, _From, State) ->
     Rates ->
       io:format("Rates are not empty, returning~n", []),
       {reply, {ok, Rates}, State}
-  end.
+  end;
+handle_call(_Message, _From, State) ->
+  {reply, {error, unknown_message}, State}.
 
 handle_cast(drop_rates, State) ->
   io:format("Dropping rates~n", []),
